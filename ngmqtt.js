@@ -12,84 +12,89 @@ var ngmqtt = angular.module('ngmqtt', []);
 /*
 Angular Provider ngmqtt
 */
-ngmqtt.provider('ngmqtt', function() {
+ngmqtt.provider('ngmqtt', function () {
 
 	var provider = {};
 
-    provider.$get = function(){
+	provider.$get = function () {
 
-    	// Object countaing 
-    	var service = {};
+		// Object countaing 
+		var service = {};
 
-    	// MQTT Client
-    	var client = null;
+		// MQTT Client
+		var client = null;
 
-    	// Observer Pattern
-	    var observerCallbacksConnection = {};
-	    var observerCallbacksData = {};
+		// Observer Pattern
+		var observerCallbacksConnection = {};
+		var observerCallbacksData = {};
 
-	    // Connected to broker
-	    var connected = false;
+		// Connected to broker
+		var connected = false;
 
 
-	    // Observer Pattern callback invocation
-    	var notifyConnected = function(){
-	        angular.forEach(observerCallbacksConnection, function(value, key){
-	            value();
-	        })
-	    }
+		// Observer Pattern callback invocation
+		var notifyConnected = function () {
+			angular.forEach(observerCallbacksConnection, function (value, key) {
+				value();
+			})
+		}
 
-	    var notifyMessage = function(topic, message){
-	        angular.forEach(observerCallbacksData, function(value, key){
-	            value(topic, message);
-	        })
-	    }
+		var notifyMessage = function (topic, message) {
+			angular.forEach(observerCallbacksData, function (value, key) {
+				value(topic, message);
+			})
+		}
 
-	    // Methods provided: connect, listenConnection, listenMessage, Subscribe and Publish
-    	service.connect = function(mqtt_url, options){
+		// Methods provided: connect, listenConnection, listenMessage, Subscribe and Publish
+		service.connect = function (mqtt_url, options) {
 
-	        if(client == null){
+			if (client == null) {
 
-	            client = mqtt.connect(mqtt_url, options);
-	            client.on('connect', function(){
-	                connected = true;
-	                notifyConnected();
-	            });
-	            client.on('message', function(topic, message){
+				client = mqtt.connect(mqtt_url, options);
+				client.on('connect', function () {
+					connected = true;
+					notifyConnected();
+				});
+				client.on('message', function (topic, message) {
 
-	                notifyMessage(topic, message);
-	            });
-	            client.on('close', function(){
-	                console.log("disconnected");
-	            })
-	        }
-	    }
+					notifyMessage(topic, message);
+				});
+				client.on('close', function () {
+					console.log("disconnected");
+					client.reconnect()
+				})
+			}
+		}
 
-	    service.listenConnection = function(source, cb){
+		service.listenConnection = function (source, cb) {
 
-	        if(connected){
-	            cb();
-	        }
-	        else{
-	            observerCallbacksConnection[source] = cb;
-	        }
-	    }
+			if (connected) {
+				cb();
+			}
+			else {
+				observerCallbacksConnection[source] = cb;
+			}
+		}
 
-	    
-	    service.listenMessage = function(source, cb){
-	        observerCallbacksData[source] = cb;
-	    }
 
-	    service.subscribe = function(topic){
-	        client.subscribe(topic);
-	    }
+		service.listenMessage = function (source, cb) {
+			observerCallbacksData[source] = cb;
+		}
 
-	    service.publish = function(topic, data){
-	    	client.publish(topic, data);
-	    }
+		service.subscribe = function (topic) {
+			client.subscribe(topic);
+		}
 
-	    return service;
-    };
+		service.unSubscribe = function (topic) {
+			client.unSubscribe(topic);
+		}
 
-    return provider;
+		service.publish = function (topic, data) {
+			client.publish(topic, data);
+		}
+
+		return service;
+	};
+
+	return provider;
 });
