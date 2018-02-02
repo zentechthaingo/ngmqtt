@@ -61,7 +61,6 @@ ngmqtt.provider('ngmqtt', function () {
 				});
 				client.on('close', function () {
 					console.log("disconnected");
-					client.reconnect()
 				})
 			}
 		}
