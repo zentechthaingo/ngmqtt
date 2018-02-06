@@ -55,15 +55,18 @@ ngmqtt.provider('ngmqtt', function () {
 				client = mqtt.connect(mqtt_url, options);
 				client.on('connect', function () {
 					connected = true;
+					console.log("connected");
+					
 					notifyConnected();
 				});
 				client.on('message', function (topic, message) {
-
+					console.log("message "+topic+" --- "+message);
+					
 					notifyMessage(topic, message);
 				});
 				client.on('close', function () {
 					console.log("disconnected");
-					client._reconnect();
+					//client._reconnect();
 				})
 			}
 		}
@@ -84,7 +87,6 @@ ngmqtt.provider('ngmqtt', function () {
 		}
 
 		service.subscribe = function (topic) {
-			listTopicActive.push(topic)
 			client.subscribe(topic);
 		}
 
@@ -92,6 +94,10 @@ ngmqtt.provider('ngmqtt', function () {
 			delete	observerCallbacksConnection[source];
 			delete	observerCallbacksData[source];
 			client.unsubscribe(topic);
+		}
+
+		service.on = function(type ,cb){
+			return client.on(type, cb);
 		}
 
 		service.publish = function (topic, data) {
