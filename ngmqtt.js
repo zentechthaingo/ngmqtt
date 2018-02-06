@@ -54,14 +54,10 @@ ngmqtt.provider('ngmqtt', function () {
 
 				client = mqtt.connect(mqtt_url, options);
 				client.on('connect', function () {
-					connected = true;
-					console.log("connected");
-					
+					connected = true;					
 					notifyConnected();
 				});
-				client.on('message', function (topic, message) {
-					console.log("message "+topic+" --- "+message);
-					
+				client.on('message', function (topic, message) {					
 					notifyMessage(topic, message);
 				});
 				client.on('close', function () {
