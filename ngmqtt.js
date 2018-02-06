@@ -35,12 +35,14 @@ ngmqtt.provider('ngmqtt', function () {
 		// Observer Pattern callback invocation
 		var notifyConnected = function () {
 			angular.forEach(observerCallbacksConnection, function (value, key) {
+				console.log("callback vaule: "+ value+" key: "+key)				
 				value();
 			})
 		}
 
 		var notifyMessage = function (topic, message) {
 			angular.forEach(observerCallbacksData, function (value, key) {
+				console.log("data vaule: "+ value+" key: "+key)				
 				value(topic, message);
 			})
 		}
@@ -61,6 +63,7 @@ ngmqtt.provider('ngmqtt', function () {
 				});
 				client.on('close', function () {
 					console.log("disconnected");
+					client._reconnect();
 				})
 			}
 		}
@@ -81,15 +84,22 @@ ngmqtt.provider('ngmqtt', function () {
 		}
 
 		service.subscribe = function (topic) {
+			listTopicActive.push(topic)
 			client.subscribe(topic);
 		}
 
-		service.unSubscribe = function (topic) {
-			client.unSubscribe(topic);
+		service.unSubscribe = function (source, topic) {
+			delete	observerCallbacksConnection[source];
+			delete	observerCallbacksData[source];
+			client.unsubscribe(topic);
 		}
 
 		service.publish = function (topic, data) {
 			client.publish(topic, data);
+		}
+
+		service.reconnect = function(){
+			client._reconnect();
 		}
 
 		return service;
